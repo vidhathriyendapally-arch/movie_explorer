@@ -44,7 +44,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = ModalRoute.of(context)!.settings.arguments as Movie;
+    final args = ModalRoute.of(context)?.settings.arguments;
+if (args is! Movie) return const HomeScreen();
+final movie = args;
 
     return Scaffold(
       appBar: AppBar(title: Text('Review: ${movie.title}')),
