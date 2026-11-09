@@ -11,7 +11,9 @@ class DetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The movie is passed through Navigator.pushNamed(arguments: movie).
-    final movie = ModalRoute.of(context)!.settings.arguments as Movie;
+    final args = ModalRoute.of(context)?.settings.arguments;
+if (args is! Movie) return const HomeScreen();
+final movie = args;
     final p = context.watch<MovieProvider>();
     final isFav = p.isFavorite(movie.id);
     final reviews = p.reviewsFor(movie.id);
