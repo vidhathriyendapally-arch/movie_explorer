@@ -16,16 +16,20 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movie_explorer
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - run: flutter create . --platforms web --project-name movie_explorer
       - run: flutter pub get
-      - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      - run: flutter build web --release --base-href "/movie_explorer/"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: movie_explorer/build/web
 
   deploy:
     needs: build
