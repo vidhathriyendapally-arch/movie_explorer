@@ -1,3 +1,4 @@
+import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/movie_provider.dart';
@@ -17,6 +18,17 @@ void main() {
   );
 }
 
+// Lets horizontal lists (Trending, genre chips) be dragged with a mouse on web.
+class AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
+
 class MovieExplorerApp extends StatelessWidget {
   const MovieExplorerApp({super.key});
 
@@ -27,6 +39,7 @@ class MovieExplorerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Movie Explorer',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: AppScrollBehavior(),
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
