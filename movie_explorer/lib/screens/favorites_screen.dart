@@ -10,47 +10,133 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<MovieProvider>();
+    final scheme = Theme.of(context).colorScheme;
     final favs = p.favoriteMovies;
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Favorites')),
       body: favs.isEmpty
-          ? const Center(child: Text('No favorites yet. Tap the heart on a movie!'))
-          : Center(
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.favorite_border,
+                        size: 64, color: scheme.onSurfaceVariant),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No favorites yet. Tap the heart on a movie!',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                          context, '/', (route) => false),
+                      icon: const Icon(Icons.movie_outlined),
+                      label: const Text('Browse movies'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 700),
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: favs.length,
-                  itemBuilder: (context, i) {
-                    final m = favs[i];
-                    return Card(
-                      child: ListTile(
-                        leading: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: PosterBox(movie: m)),
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${favs.length} saved ${favs.length == 1 ? 'movie' : 'movies'}',
+                          style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600),
                         ),
-                        title: Text(m.title),
-                        subtitle: Text('${m.year} • ${m.genre}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            RatingBadge(rating: m.rating),
-                            IconButton(
-                              tooltip: 'Remove',
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => p.toggleFavorite(m.id),
-                            ),
-                          ],
-                        ),
-                        onTap: () => Navigator.pushNamed(context, '/details',
-                            arguments: m),
                       ),
-                    );
-                  },
+                    ),
+                    // 1 column on mobile, 2 on wide screens.
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: favs.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 560,
+                          mainAxisExtent: 108,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemBuilder: (context, i) {
+                          final m = favs[i];
+                          return Material(
+                            color: scheme.surface,
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(color: scheme.outline),
+                            ),
+                            child: InkWell(
+                              onTap: () => Navigator.pushNamed(
+                                  context, '/details',
+                                  arguments: m),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 60,
+                                      height: 84,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child:
+                                            PosterBox(movie: m, compact: true),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(m.title,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 16)),
+                                          const SizedBox(height: 2),
+                                          Text('${m.year} • ${m.genre}',
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  color:
+                                                      scheme.onSurfaceVariant)),
+                                          const SizedBox(height: 8),
+                                          RatingBadge(rating: m.rating),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Remove',
+                                      icon: const Icon(Icons.delete_outline),
+                                      onPressed: () => p.toggleFavorite(m.id),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
