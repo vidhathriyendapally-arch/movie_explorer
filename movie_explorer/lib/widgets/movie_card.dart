@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/movie.dart';
 import '../providers/movie_provider.dart';
+import '../theme/app_theme.dart';
 import 'poster_box.dart';
 import 'rating_badge.dart';
 
-// Reusable movie card. Fades in when it first appears, lifts on hover (web),
-// and shows a heart if the movie is a favourite. Tap opens Details.
+// Opens the Details screen and remembers the movie as "recently viewed".
+void openMovie(BuildContext context, Movie movie) {
+  context.read<MovieProvider>().markViewed(movie.id);
+  Navigator.pushNamed(context, '/details', arguments: movie);
+}
+
+// Reusable movie card: fade-in on load, zoom on mouse hover, heart if favorite.
 class MovieCard extends StatefulWidget {
   final Movie movie;
   final String? heroTag;
@@ -21,9 +27,7 @@ class _MovieCardState extends State<MovieCard> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final movie = widget.movie;
-    // select: rebuild only when this movie's favourite status changes.
     final isFav =
         context.select<MovieProvider, bool>((p) => p.isFavorite(movie.id));
 
@@ -36,42 +40,33 @@ class _MovieCardState extends State<MovieCard> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
-        child: AnimatedContainer(
+        child: AnimatedScale(
+          scale: _hover ? 1.04 : 1.0,
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          transform: Matrix4.translationValues(0, _hover ? -4 : 0, 0),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: scheme.outline),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(_hover ? 45 : 18),
-                blurRadius: _hover ? 20 : 8,
-                offset: Offset(0, _hover ? 10 : 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
+          child: Card(
+            color: AppTheme.cardColor(context),
+            elevation: _hover ? 8 : 1,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
             child: InkWell(
-              onTap: () =>
-                  Navigator.pushNamed(context, '/details', arguments: movie),
+              onTap: () => openMovie(context, movie),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Poster with rating badge on top (Stack).
                   Expanded(
                     child: Stack(
                       children: [
                         Positioned.fill(
-                            child: PosterBox(
-                                movie: movie, heroTag: widget.heroTag)),
+                            child:
+                                PosterBox(movie: movie, heroTag: widget.heroTag)),
                         Positioned(
-                            top: 8,
-                            right: 8,
-                            child: RatingBadge(rating: movie.rating)),
+                          top: 8,
+                          right: 8,
+                          child: RatingBadge(rating: movie.rating),
+                        ),
                         if (isFav)
                           Positioned(
                             top: 8,
@@ -79,35 +74,27 @@ class _MovieCardState extends State<MovieCard> {
                             child: Container(
                               padding: const EdgeInsets.all(5),
                               decoration: const BoxDecoration(
-                                  color: Colors.white, shape: BoxShape.circle),
+                                  color: Colors.black54, shape: BoxShape.circle),
                               child: const Icon(Icons.favorite,
-                                  size: 14, color: Color(0xFFE11D48)),
+                                  color: Colors.redAccent, size: 16),
                             ),
                           ),
                       ],
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          movie.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 14),
-                        ),
+                        Text(movie.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 2),
-                        Text(
-                          '${movie.year} • ${movie.genre}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 12, color: scheme.onSurfaceVariant),
-                        ),
+                        Text('${movie.year} • ${movie.genre}',
+                            style: TextStyle(
+                                fontSize: 12, color: AppTheme.mutedText(context))),
                       ],
                     ),
                   ),
